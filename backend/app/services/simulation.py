@@ -205,6 +205,105 @@ def simulate_disruption(
                 "optimized": power_stress_optimized
             }
         },
+
+        "refinery_impacts": [
+             {
+                 "refinery": "Jamnagar RIL",
+                 "normal_run_rate_pct": 100,
+                 "disrupted_run_rate_pct": round(max(0.0, 100.0 - ((severity_pct if location == "Hormuz" else 0.0) * 0.72)), 2),
+                 "shortfall_mbpd": round(1.24 * (1 - max(0.0, 100.0 - ((severity_pct if location == "Hormuz" else 0.0) * 0.72)) / 100.0), 3),
+                 "primary_crude_affected": "Arab Light",
+                 "severity": "CRITICAL" if (100.0 - max(0.0, 100.0 - ((severity_pct if location == "Hormuz" else 0.0) * 0.72))) > 40.0 else "HIGH" if (100.0 - max(0.0, 100.0 - ((severity_pct if location == "Hormuz" else 0.0) * 0.72))) >= 25.0 else "MEDIUM" if (100.0 - max(0.0, 100.0 - ((severity_pct if location == "Hormuz" else 0.0) * 0.72))) >= 10.0 else "LOW"
+             },
+             {
+                 "refinery": "Jamnagar HPCL",
+                 "normal_run_rate_pct": 100,
+                 "disrupted_run_rate_pct": round(max(0.0, 100.0 - ((severity_pct if location == "Hormuz" else 0.0) * 0.68)), 2),
+                 "shortfall_mbpd": round(0.18 * (1 - max(0.0, 100.0 - ((severity_pct if location == "Hormuz" else 0.0) * 0.68)) / 100.0), 3),
+                 "primary_crude_affected": "Murban Crude",
+                 "severity": "CRITICAL" if (100.0 - max(0.0, 100.0 - ((severity_pct if location == "Hormuz" else 0.0) * 0.68))) > 40.0 else "HIGH" if (100.0 - max(0.0, 100.0 - ((severity_pct if location == "Hormuz" else 0.0) * 0.68))) >= 25.0 else "MEDIUM" if (100.0 - max(0.0, 100.0 - ((severity_pct if location == "Hormuz" else 0.0) * 0.68))) >= 10.0 else "LOW"
+             },
+             {
+                 "refinery": "Paradip IOCL",
+                 "normal_run_rate_pct": 100,
+                 "disrupted_run_rate_pct": round(max(0.0, 100.0 - ((severity_pct if location == "Hormuz" else 0.0) * 0.55)), 2),
+                 "shortfall_mbpd": round(0.30 * (1 - max(0.0, 100.0 - ((severity_pct if location == "Hormuz" else 0.0) * 0.55)) / 100.0), 3),
+                 "primary_crude_affected": "Basrah Heavy",
+                 "severity": "CRITICAL" if (100.0 - max(0.0, 100.0 - ((severity_pct if location == "Hormuz" else 0.0) * 0.55))) > 40.0 else "HIGH" if (100.0 - max(0.0, 100.0 - ((severity_pct if location == "Hormuz" else 0.0) * 0.55))) >= 25.0 else "MEDIUM" if (100.0 - max(0.0, 100.0 - ((severity_pct if location == "Hormuz" else 0.0) * 0.55))) >= 10.0 else "LOW"
+             },
+             {
+                 "refinery": "Kochi BPCL",
+                 "normal_run_rate_pct": 100,
+                 "disrupted_run_rate_pct": round(max(0.0, 100.0 - ((severity_pct if location == "Hormuz" else 0.0) * 0.48)), 2),
+                 "shortfall_mbpd": round(0.31 * (1 - max(0.0, 100.0 - ((severity_pct if location == "Hormuz" else 0.0) * 0.48)) / 100.0), 3),
+                 "primary_crude_affected": "Murban Crude",
+                 "severity": "CRITICAL" if (100.0 - max(0.0, 100.0 - ((severity_pct if location == "Hormuz" else 0.0) * 0.48))) > 40.0 else "HIGH" if (100.0 - max(0.0, 100.0 - ((severity_pct if location == "Hormuz" else 0.0) * 0.48))) >= 25.0 else "MEDIUM" if (100.0 - max(0.0, 100.0 - ((severity_pct if location == "Hormuz" else 0.0) * 0.48))) >= 10.0 else "LOW"
+             },
+             {
+                 "refinery": "Vizag HPCL",
+                 "normal_run_rate_pct": 100,
+                 "disrupted_run_rate_pct": round(max(0.0, 100.0 - ((severity_pct if location == "Hormuz" else 0.0) * 0.61)), 2),
+                 "shortfall_mbpd": round(0.17 * (1 - max(0.0, 100.0 - ((severity_pct if location == "Hormuz" else 0.0) * 0.61)) / 100.0), 3),
+                 "primary_crude_affected": "Basrah Heavy",
+                 "severity": "CRITICAL" if (100.0 - max(0.0, 100.0 - ((severity_pct if location == "Hormuz" else 0.0) * 0.61))) > 40.0 else "HIGH" if (100.0 - max(0.0, 100.0 - ((severity_pct if location == "Hormuz" else 0.0) * 0.61))) >= 25.0 else "MEDIUM" if (100.0 - max(0.0, 100.0 - ((severity_pct if location == "Hormuz" else 0.0) * 0.61))) >= 10.0 else "LOW"
+             },
+             {
+                 "refinery": "Chennai CPCL",
+                 "normal_run_rate_pct": 100,
+                 "disrupted_run_rate_pct": round(max(0.0, 100.0 - ((severity_pct if location == "Hormuz" else 0.0) * 0.52)), 2),
+                 "shortfall_mbpd": round(0.21 * (1 - max(0.0, 100.0 - ((severity_pct if location == "Hormuz" else 0.0) * 0.52)) / 100.0), 3),
+                 "primary_crude_affected": "Arab Light",
+                 "severity": "CRITICAL" if (100.0 - max(0.0, 100.0 - ((severity_pct if location == "Hormuz" else 0.0) * 0.52))) > 40.0 else "HIGH" if (100.0 - max(0.0, 100.0 - ((severity_pct if location == "Hormuz" else 0.0) * 0.52))) >= 25.0 else "MEDIUM" if (100.0 - max(0.0, 100.0 - ((severity_pct if location == "Hormuz" else 0.0) * 0.52))) >= 10.0 else "LOW"
+             }
+         ],
+         
+         "power_sector_stress": {
+             "overall_level": "CRITICAL" if disrupted_gap_pct > 15 else "HIGH" if disrupted_gap_pct > 8 else "MEDIUM" if disrupted_gap_pct > 3 else "LOW",
+             "naphtha_feedstock_diversion_required": disrupted_gap_pct > 8,
+             "fuel_oil_shortfall_pct": round(disrupted_gap_pct * 1.5 if disrupted_gap_pct > 15 else disrupted_gap_pct * 1.2 if disrupted_gap_pct > 8 else disrupted_gap_pct * 0.8 if disrupted_gap_pct > 3 else disrupted_gap_pct * 0.5, 2),
+             "states_most_affected": ["Gujarat", "Odisha", "Kerala", "Andhra Pradesh"],
+             "estimated_load_shedding_hours_per_day": round(disrupted_gap_pct * 0.3 if disrupted_gap_pct > 15 else disrupted_gap_pct * 0.15 if disrupted_gap_pct > 8 else 0.5 if disrupted_gap_pct > 3 else 0.0, 1),
+             "explanation": f"Critical crude supply shortfall of {disrupted_gap_pct:.1f}% forces emergency redirection of naphtha feeds from power generation to refiners." if disrupted_gap_pct > 15 else f"High supply disruption at {location} leads to domestic fuel oil deficits and localized power grid stress." if disrupted_gap_pct > 8 else "Moderate fuel oil reserve draws prevent widespread load shedding, but industrial margins remain strained." if disrupted_gap_pct > 3 else "Power sector operations remain normal with sufficient backup coal and gas generation."
+         },
+         
+         "grade_compatibility_matrix": [
+             {
+                 "alternative_crude": "Bonny Light (Nigeria)",
+                 "api_gravity": 33.9,
+                 "sulfur_pct": 0.14,
+                 "compatible_refineries": ["Jamnagar RIL", "Kochi BPCL", "Paradip IOCL"],
+                 "incompatible_refineries": ["Vizag HPCL"],
+                 "compatibility_notes": "Low sulfur sweet crude — requires desulfurizer bypass",
+                 "spot_premium_usd_bbl": 1.80
+             },
+             {
+                 "alternative_crude": "WTI Light Sweet (USA)",
+                 "api_gravity": 39.6,
+                 "sulfur_pct": 0.24,
+                 "compatible_refineries": ["Jamnagar RIL", "Kochi BPCL", "Paradip IOCL", "Vizag HPCL", "Chennai CPCL"],
+                 "incompatible_refineries": [],
+                 "compatibility_notes": "Universal compatibility — premium pricing applies",
+                 "spot_premium_usd_bbl": 3.20
+             },
+             {
+                 "alternative_crude": "Murban (UAE)",
+                 "api_gravity": 40.5,
+                 "sulfur_pct": 0.77,
+                 "compatible_refineries": ["Jamnagar RIL", "Jamnagar HPCL", "Kochi BPCL"],
+                 "incompatible_refineries": ["Chennai CPCL", "Paradip IOCL"],
+                 "compatibility_notes": "Medium sour — needs CDU configuration adjustment",
+                 "spot_premium_usd_bbl": 0.90
+             },
+             {
+                 "alternative_crude": "Johan Sverdrup (Norway)",
+                 "api_gravity": 28.3,
+                 "sulfur_pct": 0.90,
+                 "compatible_refineries": ["Jamnagar RIL", "Paradip IOCL"],
+                 "incompatible_refineries": ["Kochi BPCL", "Vizag HPCL", "Chennai CPCL"],
+                 "compatibility_notes": "Heavy sour — only high-conversion refineries compatible",
+                 "spot_premium_usd_bbl": -0.50
+             }
+         ],
         
         "explanation": f"The disruption of the {location} corridor affects {round(actual_supply_loss_kbd, 1)} kbd of Indian crude oil imports. "
                       f"Without intervention, this leads to an estimated refinery capacity drop of {round(disrupted_gap_pct, 1)}% "

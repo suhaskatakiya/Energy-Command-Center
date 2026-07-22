@@ -3,6 +3,10 @@ import json
 from sqlalchemy.orm import Session
 import google.generativeai as genai
 from ..config import settings
+from ..rag_engine import EnergyRAG
+
+# Initialize RAG Engine
+rag = EnergyRAG()
 
 # 1. Historical crises dataset for RAG grounding
 HISTORICAL_CRISAS_KB = [
@@ -56,6 +60,13 @@ def analyze_raw_news(news_text: str) -> dict:
     Uses Gemini LLM to extract structured geopolitical risk events from raw text.
     If no API key is provided, falls back to a deterministic keyword-based text miner.
     """
+    retrieved_docs = []
+    try:
+        rag_res = rag.query(news_text, n_results=3)
+        retrieved_docs = rag_res.get("retrieved_docs", [])
+    except Exception as e:
+        print(f"Error querying EnergyRAG during news analysis: {e}")
+
     has_key = len(settings.GEMINI_API_KEY) > 10
     
     if has_key:
@@ -84,14 +95,18 @@ def analyze_raw_news(news_text: str) -> dict:
             
             Return ONLY the valid JSON object. Do not include markdown code block formatting like ```json.
             """
-            response = model.generate_content(prompt)
+            augmented_prompt = rag.augment_prompt(prompt, news_text)
+            response = model.generate_content(augmented_prompt)
             text = response.text.strip()
             # Handle potential markdown wrappers
             if text.startswith("```json"):
                 text = text.split("```json")[1].split("```")[0].strip()
             elif text.startswith("```"):
                 text = text.split("```")[1].split("```")[0].strip()
-            return json.loads(text)
+            return {
+                "event": json.loads(text),
+                "retrieved_docs": retrieved_docs
+            }
         except Exception as e:
             print(f"Gemini API error during news parsing: {e}. Falling back to Rule-Based Extractor.")
 
@@ -162,16 +177,19 @@ def analyze_raw_news(news_text: str) -> dict:
         summary = "Trade regulations and embargoes tightening on global oil suppliers could restrict import channels."
 
     return {
-        "title": title,
-        "summary": summary,
-        "location": location,
-        "affected_corridor": corridor,
-        "severity": severity,
-        "disruption_probability": prob,
-        "affected_supply_pct": supply_pct,
-        "confidence": confidence,
-        "verification_status": status,
-        "source": source
+        "event": {
+            "title": title,
+            "summary": summary,
+            "location": location,
+            "affected_corridor": corridor,
+            "severity": severity,
+            "disruption_probability": prob,
+            "affected_supply_pct": supply_pct,
+            "confidence": confidence,
+            "verification_status": status,
+            "source": source
+        },
+        "retrieved_docs": retrieved_docs
     }
 
 # 3. Decision Orchestrator Agent
@@ -300,7 +318,8 @@ def orchestrate_decision_plan(
             Keep the response authoritative, concise, and structured for policy analysts. Do not mention that you are a mock agent or that these inputs are artificial.
             """
             
-            response = model.generate_content(prompt)
+            augmented_prompt = rag.augment_prompt(prompt, f"Strategic response plan for {location} disruption")
+            response = model.generate_content(augmented_prompt)
             reasoning_text = response.text.strip()
             
             return {

@@ -38,7 +38,9 @@ const ScenarioSimulator: React.FC<ScenarioSimulatorProps> = ({ onSimulationRun, 
       
       const res = await api.simulate(config);
       if (res.results) {
-        setSimulationResult(JSON.parse(res.results));
+        const parsed = JSON.parse(res.results);
+        console.log("Refinery run rates simulated:", parsed.refinery_impacts?.length);
+        setSimulationResult(parsed);
         
         // Cache the simulation ID in localStorage for integration across tabs
         localStorage.setItem('active_simulation_id', res.id.toString());
@@ -103,101 +105,114 @@ const ScenarioSimulator: React.FC<ScenarioSimulatorProps> = ({ onSimulationRun, 
 
   return (
     <div className="space-y-8 animate-fadeIn">
-      {/* 1. Control Grid */}
-      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-        {/* Simulation configuration inputs */}
-        <div className="xl:col-span-1 bg-slate-900 border border-brand-border rounded-xl p-6 space-y-4">
-          <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-2">
-            <Sliders size={16} className="text-sky-400" />
-            <span>Crisis Simulator Controls</span>
-          </h3>
-
-          <div>
-            <label className="text-[10px] text-slate-500 font-bold uppercase tracking-widest block mb-1">Disruption Target Corridor</label>
-            <select 
-              value={location} 
-              onChange={(e) => {
-                setLocation(e.target.value);
-                setName(e.target.value === 'Hormuz' ? 'Strait of Hormuz Conflict' : 'Red Sea Shipping Disruption');
-              }}
-              className="w-full bg-slate-950 border border-brand-border text-slate-200 text-xs font-semibold py-2 px-3 rounded-lg focus:outline-none focus:border-sky-400"
-            >
-              <option value="Hormuz">Strait of Hormuz</option>
-              <option value="Red Sea">Red Sea (Bab-el-Mandeb)</option>
-            </select>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Side: Control Board */}
+        <div className="bg-slate-900 border border-brand-border rounded-xl p-6 h-fit space-y-6">
+          <div className="flex items-center gap-2 text-slate-400">
+            <Sliders size={18} className="text-sky-400" />
+            <h3 className="text-sm font-bold uppercase tracking-wider">Control board</h3>
           </div>
 
-          <div>
-            <label className="text-[10px] text-slate-500 font-bold uppercase tracking-widest block mb-1">Disruption Severity: {severity}%</label>
-            <input 
-              type="range" 
-              min="10" 
-              max="100" 
-              step="5"
-              value={severity}
-              onChange={(e) => setSeverity(parseInt(e.target.value))}
-              className="w-full h-1 bg-slate-950 rounded-lg appearance-none cursor-pointer accent-sky-400 focus:outline-none"
-            />
-            <div className="flex justify-between text-[8px] text-slate-500 font-semibold mt-1">
-              <span>MIN SHOCK</span>
-              <span>SEVERE BLOCKED</span>
+          <div className="space-y-4 text-xs font-semibold">
+            <div className="space-y-1.5">
+              <label className="text-slate-500 uppercase tracking-wider text-[10px]">Simulation profile name</label>
+              <input 
+                type="text" 
+                value={name} 
+                onChange={(e) => setName(e.target.value)}
+                className="w-full bg-slate-950 border border-brand-border rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-sky-400"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-slate-500 uppercase tracking-wider text-[10px]">Disruption target location</label>
+              <select 
+                value={location} 
+                onChange={(e) => setLocation(e.target.value)}
+                className="w-full bg-slate-950 border border-brand-border rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-sky-400"
+              >
+                <option value="Hormuz">Strait of Hormuz</option>
+                <option value="Red Sea">Red Sea / Bab-el-Mandeb</option>
+                <option value="None">No Active Disruption</option>
+              </select>
+            </div>
+
+            <div className="space-y-1.5">
+              <div className="flex justify-between">
+                <label className="text-slate-500 uppercase tracking-wider text-[10px]">Disruption severity</label>
+                <span className="text-sky-400">{severity}%</span>
+              </div>
+              <input 
+                type="range" 
+                min="0" 
+                max="100" 
+                value={severity} 
+                onChange={(e) => setSeverity(parseInt(e.target.value))}
+                className="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer accent-sky-500 border border-brand-border/40"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <div className="flex justify-between">
+                <label className="text-slate-500 uppercase tracking-wider text-[10px]">Incident Duration</label>
+                <span className="text-sky-400">{duration} days</span>
+              </div>
+              <input 
+                type="range" 
+                min="5" 
+                max="90" 
+                value={duration} 
+                onChange={(e) => setDuration(parseInt(e.target.value))}
+                className="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer accent-sky-500 border border-brand-border/40"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-slate-500 uppercase tracking-wider text-[10px]">Base oil price ($/bbl)</label>
+              <input 
+                type="number" 
+                step="0.5"
+                value={basePrice} 
+                onChange={(e) => setBasePrice(parseFloat(e.target.value))}
+                className="w-full bg-slate-950 border border-brand-border rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-sky-400"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-slate-500 uppercase tracking-wider text-[10px]">Base Freight shipping cost ($/bbl)</label>
+              <input 
+                type="number" 
+                step="0.1"
+                value={shippingCost} 
+                onChange={(e) => setShippingCost(parseFloat(e.target.value))}
+                className="w-full bg-slate-950 border border-brand-border rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-sky-400"
+              />
             </div>
           </div>
 
-          <div>
-            <label className="text-[10px] text-slate-500 font-bold uppercase tracking-widest block mb-1">Disruption Duration (Days)</label>
-            <input 
-              type="number" 
-              min="5"
-              max="120"
-              value={duration}
-              onChange={(e) => setDuration(parseInt(e.target.value))}
-              className="w-full bg-slate-950 border border-brand-border text-slate-200 text-xs font-semibold py-2 px-3 rounded-lg focus:outline-none focus:border-sky-400"
-            />
-          </div>
-
-          <div>
-            <label className="text-[10px] text-slate-500 font-bold uppercase tracking-widest block mb-1">Baseline Crude Price ($/bbl)</label>
-            <input 
-              type="number" 
-              step="0.5"
-              value={basePrice}
-              onChange={(e) => setBasePrice(parseFloat(e.target.value))}
-              className="w-full bg-slate-950 border border-brand-border text-slate-200 text-xs font-semibold py-2 px-3 rounded-lg focus:outline-none focus:border-sky-400"
-            />
-          </div>
-
-          <div>
-            <label className="text-[10px] text-slate-500 font-bold uppercase tracking-widest block mb-1">Baseline Freight Surcharge ($/bbl)</label>
-            <input 
-              type="number" 
-              step="0.1"
-              value={shippingCost}
-              onChange={(e) => setShippingCost(parseFloat(e.target.value))}
-              className="w-full bg-slate-950 border border-brand-border text-slate-200 text-xs font-semibold py-2 px-3 rounded-lg focus:outline-none focus:border-sky-400"
-            />
-          </div>
-
-          <button
+          <button 
             onClick={handleSimulate}
             disabled={isSimulating}
-            className="w-full py-3 bg-sky-500 hover:bg-sky-400 disabled:bg-slate-800 text-brand-darkest font-bold rounded-lg text-xs tracking-wider uppercase transition-all shadow-glow-sky/20 flex items-center justify-center gap-2"
+            className="w-full py-3 bg-sky-500 hover:bg-sky-400 disabled:bg-slate-800 disabled:text-slate-500 text-brand-darkest font-bold rounded-lg text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-glow-sky/20"
           >
             {isSimulating ? (
               <>
                 <RefreshCw className="animate-spin" size={14} />
-                <span>Running Simulation...</span>
+                <span>Running Simulation Solvers...</span>
               </>
             ) : (
-              <span>Run Disruption Simulation</span>
+              <>
+                <Activity size={14} />
+                <span>Execute Scenario Simulation</span>
+              </>
             )}
           </button>
         </div>
 
-        {/* 2. Simulation Results display */}
-        <div className="xl:col-span-3 space-y-6">
+        {/* Right Side: Outputs */}
+        <div className="lg:col-span-2 space-y-6">
           {simulationResult ? (
-            <div className="space-y-6 animate-fadeIn">
+            <div className="space-y-6">
               {/* Quantified impact columns: Baseline, Disruption, Optimized */}
               <div className="bg-slate-900 border border-brand-border rounded-xl p-6">
                 <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400 mb-6 flex items-center gap-2">
@@ -326,6 +341,165 @@ const ScenarioSimulator: React.FC<ScenarioSimulatorProps> = ({ onSimulationRun, 
                     </ResponsiveContainer>
                   </div>
                   <span className="text-[8px] text-slate-500 font-bold block text-right mt-1">(*Cumulative Cost scaled x10 for display alignment)</span>
+                </div>
+              </div>
+
+              {/* CARD 1 — Refinery Run Rates */}
+              <div className="bg-slate-900 border border-brand-border rounded-xl p-6 space-y-4">
+                <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                  <Activity size={16} className="text-sky-400" />
+                  <span>Refinery Impact Analysis</span>
+                </h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="border-b border-brand-border text-slate-500 font-bold uppercase tracking-wider">
+                        <th className="pb-3">Refinery</th>
+                        <th className="pb-3 text-center">Normal Rate</th>
+                        <th className="pb-3 text-center">Disrupted Rate</th>
+                        <th className="pb-3 text-center">Shortfall</th>
+                        <th className="pb-3 text-right">Severity</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-brand-border/60 font-semibold text-slate-200">
+                      {simulationResult.refinery_impacts?.map((ref: any, idx: number) => {
+                        let badgeColor = 'bg-risk-low/20 text-risk-low border border-risk-low/30';
+                        if (ref.severity === 'MEDIUM') badgeColor = 'bg-risk-medium/20 text-risk-medium border border-risk-medium/30';
+                        else if (ref.severity === 'HIGH') badgeColor = 'bg-risk-high/20 text-risk-high border border-risk-high/30';
+                        else if (ref.severity === 'CRITICAL') badgeColor = 'bg-risk-critical/20 text-risk-critical border border-risk-critical/30';
+
+                        return (
+                          <tr key={idx} className="hover:bg-slate-950/40">
+                            <td className="py-3">
+                              {ref.refinery}
+                              <p className="text-[10px] text-slate-500 font-normal leading-normal mt-0.5">Primary Affected Crude: {ref.primary_crude_affected}</p>
+                            </td>
+                            <td className="py-3 text-center text-slate-350">{ref.normal_run_rate_pct}%</td>
+                            <td className="py-3 text-center font-bold" style={{ color: ref.severity === 'LOW' ? '#10b981' : ref.severity === 'MEDIUM' ? '#f59e0b' : ref.severity === 'HIGH' ? '#f97316' : '#ef4444' }}>{ref.disrupted_run_rate_pct}%</td>
+                            <td className="py-3 text-center text-slate-350">{ref.shortfall_mbpd} MBPD</td>
+                            <td className="py-3 text-right">
+                              <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded ${badgeColor}`}>
+                                {ref.severity}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="border-t border-brand-border/40 pt-3 text-xs font-black text-right text-slate-200">
+                  Total Production Shortfall: {simulationResult.refinery_impacts?.reduce((acc: number, curr: any) => acc + curr.shortfall_mbpd, 0).toFixed(2)} MBPD
+                </div>
+              </div>
+
+              {/* CARD 2 — Power Sector Stress */}
+              {simulationResult.power_sector_stress && (
+                <div className="bg-slate-900 border border-brand-border rounded-xl p-6 space-y-4">
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                    <AlertTriangle size={16} className="text-amber-500" />
+                    <span>Power Sector Stress Index</span>
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="flex flex-col items-center justify-center p-4 bg-slate-950 border border-brand-border rounded-lg text-center">
+                      <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest block mb-2">Overall Stress Level</span>
+                      <span className={`text-base font-black px-4 py-1.5 rounded-full ${
+                        simulationResult.power_sector_stress.overall_level === 'CRITICAL' ? 'bg-risk-critical/20 text-risk-critical border border-risk-critical/30 shadow-glow-red/20' :
+                        simulationResult.power_sector_stress.overall_level === 'HIGH' ? 'bg-risk-high/20 text-risk-high border border-risk-high/30' :
+                        simulationResult.power_sector_stress.overall_level === 'MEDIUM' ? 'bg-risk-medium/20 text-risk-medium border border-risk-medium/30' :
+                        'bg-risk-low/20 text-risk-low border border-risk-low/30'
+                      }`}>
+                        {simulationResult.power_sector_stress.overall_level}
+                      </span>
+                    </div>
+
+                    <div className="md:col-span-2 space-y-3 text-xs">
+                      <div className="flex justify-between border-b border-brand-border pb-1.5">
+                        <span className="text-slate-450">Naphtha Feedstock Diversion Required:</span>
+                        <span className={`font-bold ${simulationResult.power_sector_stress.naphtha_feedstock_diversion_required ? 'text-amber-500' : 'text-emerald-500'}`}>
+                          {simulationResult.power_sector_stress.naphtha_feedstock_diversion_required ? 'Yes' : 'No'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between border-b border-brand-border pb-1.5">
+                        <span className="text-slate-450">Fuel Oil Shortfall:</span>
+                        <span className="font-bold text-slate-200">{simulationResult.power_sector_stress.fuel_oil_shortfall_pct}%</span>
+                      </div>
+                      <div className="flex justify-between border-b border-brand-border pb-1.5">
+                        <span className="text-slate-450">Estimated Load Shedding:</span>
+                        <span className="font-bold text-slate-200">{simulationResult.power_sector_stress.estimated_load_shedding_hours_per_day} hours/day</span>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="text-slate-450 mr-1">States Most Affected:</span>
+                        {simulationResult.power_sector_stress.states_most_affected.map((state: string, sIdx: number) => (
+                          <span key={sIdx} className="text-[10px] font-bold px-2 py-0.5 bg-slate-800 text-slate-300 border border-brand-border/60 rounded">
+                            {state}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-slate-950 p-4 border border-brand-border rounded-lg text-xs leading-relaxed text-slate-400 italic">
+                    {simulationResult.power_sector_stress.explanation}
+                  </div>
+                </div>
+              )}
+
+              {/* CARD 3 — Crude Grade Compatibility Matrix */}
+              <div className="bg-slate-900 border border-brand-border rounded-xl p-6 space-y-4">
+                <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                  <TrendingUp size={16} className="text-indigo-400" />
+                  <span>Alternative Crude Grade Compatibility</span>
+                </h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="border-b border-brand-border text-slate-500 font-bold uppercase tracking-wider">
+                        <th className="pb-3">Alternative Crude</th>
+                        <th className="pb-3 text-center">API</th>
+                        <th className="pb-3 text-center">Sulfur %</th>
+                        <th className="pb-3">Compatible Refineries</th>
+                        <th className="pb-3 text-right">Premium / Discount</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-brand-border/60 font-semibold text-slate-200">
+                      {simulationResult.grade_compatibility_matrix?.map((grade: any, idx: number) => {
+                        const isDiscount = grade.spot_premium_usd_bbl < 0;
+                        const premiumColor = isDiscount ? 'text-emerald-500' : 'text-red-500';
+                        const premiumText = isDiscount 
+                          ? `-$${Math.abs(grade.spot_premium_usd_bbl).toFixed(2)}` 
+                          : `+$${grade.spot_premium_usd_bbl.toFixed(2)}`;
+
+                        return (
+                          <tr key={idx} className="hover:bg-slate-950/40">
+                            <td className="py-3.5">
+                              <span className="font-extrabold text-slate-200">{grade.alternative_crude}</span>
+                              <p className="text-[10px] text-slate-500 font-normal leading-normal mt-0.5">{grade.compatibility_notes}</p>
+                            </td>
+                            <td className="py-3.5 text-center text-slate-350">{grade.api_gravity}</td>
+                            <td className="py-3.5 text-center text-slate-350">{grade.sulfur_pct}%</td>
+                            <td className="py-3.5 space-y-1">
+                              <div className="flex flex-wrap gap-1">
+                                {grade.compatible_refineries?.map((r: string, rIdx: number) => (
+                                  <span key={rIdx} className="text-[8px] font-bold px-1.5 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded">
+                                    {r}
+                                  </span>
+                                ))}
+                                {grade.incompatible_refineries?.map((r: string, rIdx: number) => (
+                                  <span key={rIdx} className="text-[8px] font-bold px-1.5 py-0.5 bg-red-500/10 text-red-400 border border-red-500/20 rounded">
+                                    {r}
+                                  </span>
+                                ))}
+                              </div>
+                            </td>
+                            <td className={`py-3.5 text-right font-black ${premiumColor}`}>{premiumText}/bbl</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="text-[9px] text-slate-500 italic pt-1 border-t border-brand-border/45 mt-2">
+                  * Compatibility based on API gravity range and sulfur processing capacity of each refinery. Source: PPAC Refinery Configuration Data 2024.
                 </div>
               </div>
 

@@ -3,6 +3,39 @@ from sqlalchemy.orm import Session
 from .database import engine, Base, SessionLocal
 from .models import Supplier, Route, SystemConfig, Event
 
+IMPORT_DEPENDENCY_PCT     = 88.0       # % of crude from imports
+HORMUZ_EXPOSURE_PCT       = 42.5       # midpoint of 40-45% PS range
+SPR_DAYS_COVER            = 9.5        # days of national consumption
+SPR_TOTAL_CAPACITY_MMT    = 5.33       # million metric tonnes
+SPR_SITES = [
+  { "name": "Visakhapatnam", "capacity_mmt": 1.33 },
+  { "name": "Mangaluru",     "capacity_mmt": 1.50 },
+  { "name": "Padur",         "capacity_mmt": 2.50 }
+]
+MCKINSEY_UNAUTOMATED_DELAY_DAYS = 47  # extra days without AI
+BRENT_SHOCK_PCT_2025        = 8.0     # % spike in 2025 US-Iran standoff
+
+REFINERY_CAPACITIES = [
+  { "name": "Jamnagar RIL",   "capacity_mbpd": 1.24,
+    "operator": "Reliance",   "port": "Jamnagar",
+    "accepted_api_min": 20,   "accepted_api_max": 45 },
+  { "name": "Jamnagar HPCL",  "capacity_mbpd": 0.18,
+    "operator": "HPCL-Mittal","port": "Jamnagar",
+    "accepted_api_min": 22,   "accepted_api_max": 40 },
+  { "name": "Paradip IOCL",   "capacity_mbpd": 0.30,
+    "operator": "IOCL",       "port": "Paradip",
+    "accepted_api_min": 25,   "accepted_api_max": 42 },
+  { "name": "Kochi BPCL",     "capacity_mbpd": 0.31,
+    "operator": "BPCL",       "port": "Kochi",
+    "accepted_api_min": 28,   "accepted_api_max": 44 },
+  { "name": "Vizag HPCL",     "capacity_mbpd": 0.17,
+    "operator": "HPCL",       "port": "Vizag",
+    "accepted_api_min": 24,   "accepted_api_max": 41 },
+  { "name": "Chennai CPCL",   "capacity_mbpd": 0.21,
+    "operator": "CPCL",       "port": "Chennai",
+    "accepted_api_min": 26,   "accepted_api_max": 43 }
+]
+
 def seed_db():
     # Create tables
     Base.metadata.create_all(bind=engine)
@@ -12,9 +45,11 @@ def seed_db():
         # Check if database is already seeded
         if db.query(Supplier).first():
             print("Database already seeded.")
+            print(f"VERIFICATION: Constants loaded: IMPORT_DEPENDENCY={IMPORT_DEPENDENCY_PCT}%, HORMUZ_EXPOSURE={HORMUZ_EXPOSURE_PCT}%, SPR_DAYS={SPR_DAYS_COVER}")
             return
 
         print("Seeding database...")
+        print(f"VERIFICATION: Seeding constants: IMPORT_DEPENDENCY={IMPORT_DEPENDENCY_PCT}%, HORMUZ_EXPOSURE={HORMUZ_EXPOSURE_PCT}%, SPR_DAYS={SPR_DAYS_COVER}")
 
         # 1. Seed System Configuration
         config = SystemConfig(

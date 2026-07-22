@@ -6,6 +6,156 @@ import type { Supplier, ShippingRoute } from '../types';
 import { Layers, HelpCircle, RefreshCw } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 
+const MOCK_VESSELS = [
+  {
+    id: "MT_GULF_STAR",
+    name: "MT Gulf Star",
+    type: "VLCC",
+    cargo: "Arab Light",
+    origin: "Ras Tanura, Saudi Arabia",
+    destination: "Jamnagar Port",
+    position: [26.1, 56.3],       // mid-Hormuz
+    heading: 112,
+    speed_knots: 13.2,
+    eta_days: 4,
+    corridor: "Hormuz",
+    flag: "🇸🇦"
+  },
+  {
+    id: "MT_INDIAN_OCEAN",
+    name: "MT Indian Ocean",
+    type: "Suezmax",
+    cargo: "Basrah Heavy",
+    origin: "Basra, Iraq",
+    destination: "Paradip Port",
+    position: [22.5, 63.8],       // Arabian Sea
+    heading: 98,
+    speed_knots: 11.8,
+    eta_days: 7,
+    corridor: "Hormuz",
+    flag: "🇮🇶"
+  },
+  {
+    id: "MT_CAPE_RUNNER",
+    name: "MT Cape Runner",
+    type: "VLCC",
+    cargo: "Bonny Light",
+    origin: "Bonny Terminal, Nigeria",
+    destination: "Kochi Port",
+    position: [-15.2, 12.4],      // West African coast
+    heading: 88,
+    speed_knots: 14.1,
+    eta_days: 18,
+    corridor: "Cape of Good Hope",
+    flag: "🇳🇬"
+  },
+  {
+    id: "MT_URALS_EXPRESS",
+    name: "MT Urals Express",
+    type: "Aframax",
+    cargo: "URALS Blend",
+    origin: "Novorossiysk, Russia",
+    destination: "Vizag Port",
+    position: [-32.6, 27.8],      // South Atlantic
+    heading: 95,
+    speed_knots: 12.4,
+    eta_days: 22,
+    corridor: "Cape of Good Hope",
+    flag: "🇷🇺"
+  },
+  {
+    id: "MT_MURBAN_1",
+    name: "MT Murban 1",
+    type: "VLCC",
+    cargo: "Murban Crude",
+    origin: "Ruwais, UAE",
+    destination: "Jamnagar Port",
+    position: [24.8, 58.1],       // Gulf of Oman
+    heading: 108,
+    speed_knots: 13.8,
+    eta_days: 3,
+    corridor: "Hormuz",
+    flag: "🇦🇪"
+  },
+  {
+    id: "MT_RED_SEA_1",
+    name: "MT Red Sea Voyager",
+    type: "Suezmax",
+    cargo: "Arab Medium",
+    origin: "Yanbu, Saudi Arabia",
+    destination: "Kochi Port",
+    position: [18.4, 41.2],       // Red Sea
+    heading: 160,
+    speed_knots: 10.2,
+    eta_days: 9,
+    corridor: "Red Sea",
+    flag: "🇸🇦"
+  },
+  {
+    id: "MT_WTI_1",
+    name: "MT Houston Star",
+    type: "VLCC",
+    cargo: "WTI Light Sweet",
+    origin: "Houston, USA",
+    destination: "Mumbai JNPT",
+    position: [8.2, -18.5],       // Central Atlantic
+    heading: 92,
+    speed_knots: 14.5,
+    eta_days: 28,
+    corridor: "Cape of Good Hope",
+    flag: "🇺🇸"
+  },
+  {
+    id: "MT_KUWAIT_1",
+    name: "MT Kuwait Express",
+    type: "Aframax",
+    cargo: "Kuwait Export",
+    origin: "Mina Al Ahmadi, Kuwait",
+    destination: "Chennai Port",
+    position: [19.6, 65.4],       // Arabian Sea
+    heading: 115,
+    speed_knots: 12.9,
+    eta_days: 6,
+    corridor: "Hormuz",
+    flag: "🇰🇼"
+  }
+];
+
+const INLAND_PIPELINES = [
+  {
+    id: "pipe_jamnagar_bina",
+    name: "Jamnagar–Bina Pipeline (JBPL)",
+    coords: [[22.47, 70.06], [23.8, 72.6], [24.9, 75.2], [24.2, 78.2]],
+    destination_refinery: "Bina Refinery (BPCL-Oman Oil)",
+    length_km: 1269,
+    capacity_mbpd: 0.18
+  },
+  {
+    id: "pipe_paradip_haldia",
+    name: "Paradip–Haldia–Barauni Pipeline",
+    coords: [[20.31, 86.61], [21.9, 87.8], [25.3, 87.5]],
+    destination_refinery: "Barauni Refinery (IOCL)",
+    length_km: 722,
+    capacity_mbpd: 0.06
+  },
+  {
+    id: "pipe_kochi_coimbatore",
+    name: "Kochi–Koottanad–Bangalore–Mangaluru Pipeline",
+    coords: [[9.96, 76.26], [10.5, 77.8], [12.9, 77.5], [12.87, 74.84]],
+    destination_refinery: "Mangaluru Refinery + inland terminals",
+    length_km: 900,
+    capacity_mbpd: 0.09
+  },
+  {
+    id: "pipe_vizag_secunderabad",
+    name: "Vizag–Secunderabad Pipeline",
+    coords: [[17.69, 83.22], [17.4, 81.2], [17.45, 78.5]],
+    destination_refinery: "Secunderabad Terminal (HPCL)",
+    length_km: 620,
+    capacity_mbpd: 0.07
+  }
+];
+
 // Fix default Leaflet icon paths in react builds
 import markerIconPng from 'leaflet/dist/images/marker-icon.png';
 import markerShadowPng from 'leaflet/dist/images/marker-shadow.png';
@@ -41,6 +191,44 @@ const MapView: React.FC = () => {
   const [routes, setRoutes] = useState<ShippingRoute[]>([]);
   const [selectedNode, setSelectedNode] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [vessels, setVessels] = useState<any[]>(MOCK_VESSELS);
+
+  useEffect(() => {
+    console.log("Vessel position animation loop active");
+    const destinationCoords: Record<string, [number, number]> = {
+      "Jamnagar Port": [22.47, 70.06],
+      "Paradip Port": [20.26, 86.67],
+      "Kochi Port": [9.93, 76.27],
+      "Vizag Port": [17.69, 83.22],
+      "Mumbai JNPT": [18.95, 72.95],
+      "Chennai Port": [13.08, 80.30]
+    };
+
+    const interval = setInterval(() => {
+      setVessels(prev => {
+        const updated = prev.map(v => {
+          const dest = destinationCoords[v.destination];
+          if (!dest) return v;
+          const [lat, lng] = v.position;
+          const [destLat, destLng] = dest;
+          const dLat = destLat - lat;
+          const dLng = destLng - lng;
+          const dist = Math.sqrt(dLat * dLat + dLng * dLng);
+          if (dist < 0.5) return v; // Stop animation when within 0.5 degrees
+          const ratio = 0.05 / dist;
+          const newLat = lat + dLat * Math.min(1, ratio);
+          const newLng = lng + dLng * Math.min(1, ratio);
+          return {
+            ...v,
+            position: [newLat, newLng]
+          };
+        });
+        return updated;
+      });
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const loadMapData = async () => {
@@ -89,7 +277,7 @@ const MapView: React.FC = () => {
       } catch {
         return null;
       }
-      
+
       // Determine color based on route risk score
       let color = '#10b981'; // Green (Low risk)
       if (r.risk_score > 60) {
@@ -99,15 +287,15 @@ const MapView: React.FC = () => {
       } else if (r.risk_score > 20) {
         color = '#f59e0b'; // Amber (Medium risk)
       }
-      
+
       if (r.name.includes("Bypass") || r.name.includes("Cape")) {
         color = '#06b6d4'; // Cyan (Alternative routing bypasses)
       }
 
       return (
-        <Polyline 
-          key={idx} 
-          positions={waypointsList} 
+        <Polyline
+          key={idx}
+          positions={waypointsList}
           pathOptions={{ color, weight: r.name.includes("Bypass") ? 3.5 : 3.0, dashArray: r.name.includes("Bypass") ? "6, 6" : undefined }}
         >
           <Popup>
@@ -145,9 +333,9 @@ const MapView: React.FC = () => {
       {/* 1. Left Map Panel */}
       <div className="flex-1 bg-slate-900 border border-brand-border rounded-xl overflow-hidden relative shadow-inner">
         {/* Leaflet Map container */}
-        <MapContainer 
+        <MapContainer
           center={[20.0, 68.0]} // Center on Arabian Sea/India
-          zoom={4} 
+          zoom={4}
           minZoom={3}
           maxZoom={8}
           className="h-full w-full"
@@ -156,15 +344,15 @@ const MapView: React.FC = () => {
             url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
           />
-          
+
           {/* Draw routes */}
           {renderRoutes()}
 
           {/* Draw suppliers */}
           {suppliers.map((s, idx) => (
-            <Marker 
-              key={idx} 
-              position={[s.latitude, s.longitude]} 
+            <Marker
+              key={idx}
+              position={[s.latitude, s.longitude]}
               icon={supplierIcon}
               eventHandlers={{
                 click: () => setSelectedNode({ type: 'supplier', data: s })
@@ -182,9 +370,9 @@ const MapView: React.FC = () => {
 
           {/* Draw ports */}
           {portNodes.map((p, idx) => (
-            <Marker 
-              key={idx} 
-              position={[p.lat, p.lng]} 
+            <Marker
+              key={idx}
+              position={[p.lat, p.lng]}
               icon={portIcon}
               eventHandlers={{
                 click: () => setSelectedNode({ type: 'port', data: p })
@@ -227,8 +415,89 @@ const MapView: React.FC = () => {
               }}
             />
           ))}
+
+          {/* Draw vessels */}
+          {vessels.map((v) => {
+            let borderColor = '#10b981'; // green for Cape
+            if (v.corridor === 'Hormuz') borderColor = '#ef4444'; // red
+            else if (v.corridor === 'Red Sea') borderColor = '#f59e0b'; // amber
+
+            const vesselIcon = L.divIcon({
+              html: `<div style="
+                transform: rotate(${v.heading}deg);
+                background-color: #0f172a;
+                border: 2px solid ${borderColor};
+                border-radius: 50%;
+                width: 24px;
+                height: 24px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 11px;
+                box-shadow: 0 0 5px ${borderColor};
+              ">🛢️</div>`,
+              className: 'bg-transparent',
+              iconSize: [24, 24],
+              iconAnchor: [12, 12]
+            });
+
+            return (
+              <Marker
+                key={v.id}
+                position={v.position as [number, number]}
+                icon={vesselIcon}
+                eventHandlers={{
+                  click: () => {
+                    console.log(`Vessel clicked: ${v.name}`);
+                    setSelectedNode({ type: 'vessel', data: v });
+                  }
+                }}
+              >
+                <Popup>
+                  <div className="text-xs p-2 space-y-1.5 min-w-[200px] text-slate-100">
+                    <h4 className="font-extrabold text-sky-400 text-sm">{v.name} ({v.type})</h4>
+                    <div className="grid grid-cols-2 gap-x-2 gap-y-1 border-t border-slate-700/50 pt-1.5">
+                      <div><span className="text-slate-400">Cargo:</span> <span className="font-semibold">{v.cargo}</span></div>
+                      <div><span className="text-slate-400">Flag:</span> <span>{v.flag}</span></div>
+                      <div className="col-span-2"><span className="text-slate-400">From:</span> <span className="font-semibold">{v.origin}</span></div>
+                      <div className="col-span-2"><span className="text-slate-400">To:</span> <span className="font-semibold">{v.destination}</span></div>
+                      <div><span className="text-slate-400">Speed:</span> <span className="font-semibold">{v.speed_knots} kn</span></div>
+                      <div><span className="text-slate-400">ETA:</span> <span className="font-semibold">{v.eta_days} days</span></div>
+                      <div className="col-span-2"><span className="text-slate-400">Corridor:</span> <span className="font-semibold text-slate-200">{v.corridor}</span></div>
+                    </div>
+                  </div>
+                </Popup>
+              </Marker>
+            );
+          })}
+
+          {/* Draw pipelines */}
+          {INLAND_PIPELINES.map((pipe) => (
+            <Polyline
+              key={pipe.id}
+              positions={pipe.coords as [number, number][]}
+              pathOptions={{ color: '#a78bfa', weight: 2, dashArray: '8, 6' }}
+              eventHandlers={{
+                click: () => {
+                  console.log(`Pipeline clicked: ${pipe.name}`);
+                  setSelectedNode({ type: 'pipeline', data: pipe });
+                }
+              }}
+            >
+              <Popup>
+                <div className="text-xs p-2 space-y-1 text-slate-100 min-w-[180px]">
+                  <h4 className="font-bold text-purple-400">{pipe.name}</h4>
+                  <div className="space-y-1 pt-1.5 border-t border-slate-700/50">
+                    <p><span className="text-slate-400">Length:</span> <span className="font-semibold">{pipe.length_km} km</span></p>
+                    <p><span className="text-slate-400">Capacity:</span> <span className="font-semibold">{pipe.capacity_mbpd} MBPD</span></p>
+                    <p><span className="text-slate-400">Refinery:</span> <span className="font-semibold text-slate-350">{pipe.destination_refinery}</span></p>
+                  </div>
+                </div>
+              </Popup>
+            </Polyline>
+          ))}
         </MapContainer>
-        
+
         {/* Map Legend Overlay */}
         <div className="absolute bottom-4 left-4 bg-slate-950/90 border border-brand-border rounded-lg p-3 z-[1000] text-[10px] space-y-2 pointer-events-auto">
           <p className="font-bold text-slate-450 uppercase tracking-wider">Digital Twin Legend</p>

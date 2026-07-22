@@ -238,16 +238,19 @@ export const api = {
     }
     
     return {
-      title,
-      summary,
-      location,
-      affected_corridor: corridor,
-      severity,
-      disruption_probability: prob,
-      affected_supply_pct: supply_pct,
-      confidence: 0.85,
-      verification_status: "REPORTED",
-      source: "System Intelligence Parser"
+      event: {
+        title,
+        summary,
+        location,
+        affected_corridor: corridor,
+        severity,
+        disruption_probability: prob,
+        affected_supply_pct: supply_pct,
+        confidence: 0.85,
+        verification_status: "REPORTED",
+        source: "System Intelligence Parser"
+      },
+      retrieved_docs: []
     };
   },
 

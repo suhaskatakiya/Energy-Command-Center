@@ -6,6 +6,7 @@ import {
 import Dashboard from './components/Dashboard';
 import RiskIntelligence from './components/RiskIntelligence';
 import MapView from './components/MapView';
+import DigitalTwin from './pages/DigitalTwin';
 import ScenarioSimulator from './components/ScenarioSimulator';
 import OptimizationCenter from './components/OptimizationCenter';
 import DecisionOrchestrator from './components/DecisionOrchestrator';
@@ -188,7 +189,7 @@ const App: React.FC = () => {
                 <RiskIntelligence events={events} onUpdate={handleSimUpdate} />
               )}
               {activeTab === 'map' && (
-                <MapView />
+                <DigitalTwin />
               )}
               {activeTab === 'simulator' && (
                 <ScenarioSimulator onSimulationRun={handleSimUpdate} onNavigate={setActiveTab} />

@@ -15,6 +15,7 @@ const RiskIntelligence: React.FC<RiskIntelligenceProps> = ({ events, onUpdate })
   const [newsText, setNewsText] = useState<string>('');
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const [analysisResult, setAnalysisResult] = useState<Omit<GeopoliticalEvent, 'id'> | null>(null);
+  const [retrievedDocs, setRetrievedDocs] = useState<any[]>([]);
   const [isInjecting, setIsInjecting] = useState<boolean>(false);
   const [message, setMessage] = useState<string>('');
 
@@ -34,8 +35,10 @@ const RiskIntelligence: React.FC<RiskIntelligenceProps> = ({ events, onUpdate })
     setIsAnalyzing(true);
     setMessage('');
     try {
-      const parsedResult = await api.analyzeNews(newsText);
-      setAnalysisResult(parsedResult);
+      const response = await api.analyzeNews(newsText);
+      console.log("RAG retrieved docs count:", response.retrieved_docs?.length);
+      setAnalysisResult(response.event);
+      setRetrievedDocs(response.retrieved_docs || []);
     } catch (err) {
       console.error("Error analyzing news:", err);
       setMessage("News parsing failed. Check server connection.");
@@ -271,6 +274,44 @@ const RiskIntelligence: React.FC<RiskIntelligenceProps> = ({ events, onUpdate })
             <p className="text-xs">No active event logs. Use the Geopolitical Event Miner above to inject reports.</p>
           </div>
         )}
+      </div>
+
+      {/* RAG Retrieved Intelligence Sources */}
+      <div className="bg-slate-900 border border-brand-border rounded-xl p-6 space-y-4">
+        <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400">
+          Retrieved Intelligence Sources
+        </h3>
+        
+        {retrievedDocs.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {retrievedDocs.map((doc, idx) => (
+              <div key={idx} className="bg-slate-950 border border-brand-border rounded-lg p-4 flex flex-col justify-between space-y-3">
+                <div className="space-y-1">
+                  <div className="flex justify-between items-start gap-2">
+                    <h4 className="font-bold text-xs text-slate-200 line-clamp-2">{doc.title}</h4>
+                    <span className="text-[9px] bg-sky-500/10 text-sky-400 border border-sky-400/20 px-1.5 py-0.5 rounded font-black uppercase shrink-0">Source</span>
+                  </div>
+                  <p className="text-[10px] text-slate-500 font-medium">Source: {doc.source}</p>
+                </div>
+                <p className="text-xs text-slate-400 leading-relaxed flex-1">
+                  {doc.snippet.length > 150 ? doc.snippet.slice(0, 150) + "..." : doc.snippet}
+                </p>
+                <div className="flex items-center justify-between border-t border-brand-border/40 pt-2 text-[10px]">
+                  <span className="text-slate-500">Publication Date</span>
+                  <span className="bg-slate-800 text-slate-350 px-2 py-0.5 rounded font-bold">{doc.date}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-6 text-slate-500 text-xs">
+            No relevant historical precedents found
+          </div>
+        )}
+        
+        <div className="border-t border-brand-border/40 mt-4 pt-3 text-[10px] text-slate-500 text-right">
+          Powered by RAG — ChromaDB + MiniLM embeddings
+        </div>
       </div>
     </div>
   );

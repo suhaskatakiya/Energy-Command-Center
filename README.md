@@ -108,3 +108,72 @@ Double-click the **`run_all.bat`** script at the root directory. It will:
    npm run dev
    ```
 4. Open your browser and navigate to `http://localhost:5173`.
+
+---
+
+## 4. System Architecture
+
+The following diagram outlines the system architecture, showcasing the integration between the React/Leaflet digital twin frontend, the FastAPI gateway, and the downstream analytical/RAG engines:
+
+```mermaid
+graph TD
+    User([User / Judge]) <--> Frontend[React Vite Dashboard]
+    subgraph Frontend Client
+        Map[Leaflet Digital Twin Map]
+        Chart[Recharts Analytics]
+        Demo[Automated Demo Controller]
+    end
+    Frontend <--> API[FastAPI Gateway]
+    subgraph Backend Core
+        Sim[Simulation Engine]
+        Opt[MCDA Optimization Solver]
+        Reroute[Route Pathfinding Solver]
+        subgraph Agent Engine
+            RAG[ChromaDB Precedent RAG]
+            LLM[Multi-Agent Discussion Feed]
+        end
+        DB[(SQLite & SQLAlchemy)]
+    end
+    API <--> Sim
+    API <--> Opt
+    API <--> Reroute
+    API <--> RAG
+    Sim <--> DB
+    Opt <--> DB
+```
+
+---
+
+## 5. Disaster Simulation & Optimization Workflow
+
+The simulation pipeline takes a threat signal, estimates national vulnerabilities, and runs a parallel solve logic to generate optimized responses:
+
+```mermaid
+sequenceDiagram
+    participant UI as User Interface
+    participant API as FastAPI Backend
+    participant RAG as Precedent RAG (ChromaDB)
+    participant Sim as Simulation Engine
+    participant MCDA as MCDA Optimization Solver
+
+    UI->>API: Inject news feed event (Hormuz closure)
+    API->>RAG: Retrieve historical precedents
+    RAG-->>API: Return top-3 matches
+    API-->>UI: Display geopolitical threat card
+    UI->>API: Run emergency simulation
+    API->>Sim: Compute refinery run rate capacity & daily cost impact
+    Sim-->>UI: Display simulated performance matrix
+    UI->>API: Trigger Procurement & Rerouting solver
+    API->>MCDA: Rank alternatives and suggest Cape detours
+    MCDA-->>UI: Display Recharts Radar & allocation cards
+    UI->>UI: Enact Emergency Policy (One-Click Approval)
+```
+
+---
+
+## 6. Innovation Highlights
+
+- **Dual-Layer Digital Twin Map:** Visualizes shipping lanes, dashed inland pipeline capacity networks, dynamic rotating tanker headings, and live storm warnings simultaneously.
+- **Real-Time MCDA Weights Solver:** Allows judges to interactively scale prioritization sliders, triggering immediate frontend re-ranking and Recharts Radar chart updates.
+- **Duplex Metallurgy Lookup:** Maps crude gravity and acid limits against structural steel specifications for Mathura, Panipat, Bina, Paradip, and Jamnagar refineries.
+- **ChromaDB Vector Precedents:** RAG-enabled crisis analysis matches current threat markers against 10 detailed historical oil shocks.
